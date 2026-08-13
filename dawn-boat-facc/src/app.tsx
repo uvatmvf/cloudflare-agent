@@ -696,7 +696,8 @@ function Chat() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-5 py-6 space-y-5">
+              <div className="max-w-3xl mx-auto px-5 py-6 space-y-5">
+                  <div className="space-y-5">
           {messages.length === 0 && (
             <Empty
               icon={<ChatCircleDotsIcon size={32} />}
@@ -842,9 +843,81 @@ function Chat() {
             );
           })}
 
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
+                      <div ref={messagesEndRef} />
+                  </div>
+
+                  <aside>
+                      <Surface className="rounded-xl ring ring-kumo-line p-4 sticky top-4 space-y-4">
+                          <div>
+                              <Text size="xs" variant="secondary" bold>
+                                  ARCHITECTURE DECISION
+                              </Text>
+
+                              <h2 className="text-lg font-semibold text-kumo-default mt-1">
+                                  {agent.state?.title ?? "New Architecture Decision"}
+                              </h2>
+
+                          </div>
+
+                          <div>
+                              <Text size="xs" variant="secondary" bold>
+                                  STATUS
+                              </Text>
+                              <div className="mt-1">
+                                  <Badge variant="secondary">
+                                      {agent.state?.status ?? "discovery"}
+                                  </Badge>
+                              </div>
+                          </div>
+
+                          <div>
+                              <Text size="xs" variant="secondary" bold>
+                                  PROBLEM
+                              </Text>
+                              <p className="text-sm text-kumo-default mt-1">
+                                  {agent.state?.problem || "Not defined yet"}
+                              </p>
+                          </div>
+
+                          <div>
+                              <Text size="xs" variant="secondary" bold>
+                                  REQUIREMENTS
+                              </Text>
+
+                              {agent.state?.requirements?.length ? (
+                                  <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                                      {agent.state.requirements.map((requirement) => (
+                                          <li key={requirement}>• {requirement}</li>
+                                      ))}
+                                  </ul>
+                              ) : (
+                                  <p className="text-sm text-kumo-subtle mt-1">
+                                      None captured yet
+                                  </p>
+                              )}
+                          </div>
+
+                          <div>
+                              <Text size="xs" variant="secondary" bold>
+                                  CONSTRAINTS
+                              </Text>
+
+                              {agent.state?.constraints?.length ? (
+                                  <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                                      {agent.state.constraints.map((constraint) => (
+                                          <li key={constraint}>• {constraint}</li>
+                                      ))}
+                                  </ul>
+                              ) : (
+                                  <p className="text-sm text-kumo-subtle mt-1">
+                                      None captured yet
+                                  </p>
+                              )}
+                          </div>
+                      </Surface>
+                  </aside>
+              </div>
+          </div>
 
       {/* Input */}
       <div className="border-t border-kumo-line bg-kumo-base">
