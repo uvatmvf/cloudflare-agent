@@ -3,12 +3,12 @@ import { callable, routeAgentRequest } from "agents";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
   convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
   pruneMessages,
   stepCountIs,
-  streamText,
-  tool
+  generateText  
 } from "ai";
-import { z } from "zod";
 
 export class ChatAgent extends AIChatAgent<Env> {
   maxPersistedMessages = 100;
@@ -49,8 +49,8 @@ export class ChatAgent extends AIChatAgent<Env> {
     const mcpTools = this.mcp.getAITools();
     const workersai = createWorkersAI({ binding: this.env.AI });
 
-      const result = streamText({
-          model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+    const result = await generateText({
+          model: workersai("@cf/meta/llama-4-scout-17b-16e-instruct", {
               sessionAffinity: this.sessionAffinity
           }),
           system: `You are an Architecture Decision Agent.
@@ -95,7 +95,17 @@ Treat the user as the decision maker. Your job is to facilitate and structure ar
       abortSignal: options?.abortSignal
     });
 
-    return result.toUIMessageStreamResponse();
+    const stream = createUIMessageStream({
+          execute: ({ writer }) => {
+              const id = crypto.randomUUID();
+
+              writer.write({ type: "text-start", id });
+              writer.write({ type: "text-delta", id, delta: result.text });
+              writer.write({ type: "text-end", id });
+          }
+      });
+
+      return createUIMessageStreamResponse({ stream });
   }
 }
 
