@@ -232,7 +232,6 @@ ${JSON.stringify(this.state, null, 2)}
           responseText = responseResult.text;
       }
 
-      console.log("RESULT TEXT:", result.text);
       console.log("RESPONSE TEXT:", responseText);
 
       const stream = createUIMessageStream({
