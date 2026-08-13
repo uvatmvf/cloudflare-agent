@@ -93,11 +93,11 @@ exercised with other architecture problems.
 
 ### Analyze & Recommend
 
-`<img width="712" height="1802" alt="Architecture Decision Agent showing analyzed alternatives and recommendation" src="https://github.com/user-attachments/assets/13b24347-cc48-422e-bc94-28db5721bb5e" />`{=html}
+<img width="712" height="1802" alt="Architecture Decision Agent showing analyzed alternatives and recommendation" src="https://github.com/user-attachments/assets/13b24347-cc48-422e-bc94-28db5721bb5e" />
 
 ### Architecture Decision Record
 
-`<img width="655" height="344" alt="Final architecture decision record" src="https://github.com/user-attachments/assets/b8aad30c-c388-4332-8a75-208e5dc188f4" />`{=html}
+<img width="655" height="344" alt="Final architecture decision record" src="https://github.com/user-attachments/assets/b8aad30c-c388-4332-8a75-208e5dc188f4" />
 
 ## Architecture
 
@@ -226,3 +226,14 @@ npm run dev
 
 Use the application in the browser, enter an architecture problem, and
 follow the decision workflow shown above.
+
+# AI-Assited Development 
+This project was developed with AI-assisted engineering using ChatGPT.
+
+The development conversation includes the initial architecture discussion,
+incremental implementation, debugging of the Agents SDK / Workers AI streaming
+path, durable state design, alternatives analysis, recommendation workflow,
+and final UI refinement.
+
+[Development conversation](https://chatgpt.com/share/6a7e3c40-60cc-83e8-a5f0-8ca94e70a54c)
+
