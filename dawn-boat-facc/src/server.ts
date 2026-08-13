@@ -99,7 +99,23 @@ Requirements
 Constraints
 Assumptions
 Open Questions
+Classify each fact into exactly one category.
 
+Requirements:
+Capabilities or qualities the solution must satisfy.
+
+Constraints:
+External limitations that restrict solution choices, such as team size,
+budget, mandated technology, regulation, or existing infrastructure.
+
+Assumptions:
+Things believed to be true but not yet confirmed.
+
+Open Questions:
+Important unknowns that materially affect the decision.
+
+Do not store the same fact in more than one category.
+Prefer concise canonical wording.
 Keep responses concise and practical.
 
 Treat the user as the decision maker. Your job is to facilitate and structure architectural reasoning, not replace human judgment.
@@ -126,7 +142,24 @@ Never end a turn immediately after calling updateDecisionState.
 
               updateDecisionState: tool({
                   description: `Persist architecture facts from the user's latest message.
+                  Classify each fact into exactly one category.
 
+Requirements:
+Capabilities or qualities the solution must satisfy.
+
+Constraints:
+External limitations that restrict solution choices, such as team size,
+budget, mandated technologies, regulations, or existing infrastructure.
+
+Assumptions:
+Things believed to be true but not yet confirmed.
+
+Open Questions:
+Important unknowns that materially affect the architecture decision.
+
+Do not place the same fact in multiple categories.
+Prefer concise canonical wording.
+Persist only facts stated or strongly implied by the user.
 Call this tool at most once per user message.
 
 Persist only facts directly stated or strongly implied by the user's words.
