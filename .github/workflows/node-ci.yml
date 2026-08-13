@@ -22,12 +22,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ./cloudflare-agent
+        working-directory: ./agent-starter
 
       - name: Build
         run: npm run build --if-present
-        working-directory: ./cloudflare-agent
+        working-directory: ./agent-starter
 
       - name: Run tests
         run: npm test --if-present
-        working-directory: ./cloudflare-agent
+        working-directory: ./agent-starter
