@@ -45,6 +45,9 @@ src/
   styles.css   # Tailwind + Kumo styles
 ```
 
+### Known Issues
+During development, streamed Workers AI responses through the current Agents SDK chat stack produced duplicated incremental content, while non-streaming inference returned correct output. The implementation uses non-streaming generation to preserve correctness while keeping the agent architecture unchanged.
+
 ## What's included
 
 - **AI Chat** — Streaming responses powered by Workers AI via `AIChatAgent`
