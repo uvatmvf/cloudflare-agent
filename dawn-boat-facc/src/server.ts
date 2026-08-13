@@ -1,6 +1,5 @@
 import { createWorkersAI } from "workers-ai-provider";
 import { callable, routeAgentRequest } from "agents";
-import { getSchedulePrompt } from "agents/schedule";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
   convertToModelMessages,
@@ -80,9 +79,6 @@ Open Questions
 Keep responses concise and practical.
 
 Treat the user as the decision maker. Your job is to facilitate and structure architectural reasoning, not replace human judgment.
-
-${getSchedulePrompt({ date: new Date() })}
-
     `,
       // Prune old tool calls and reasoning to save tokens on long conversations
       messages: pruneMessages({
@@ -101,7 +97,6 @@ ${getSchedulePrompt({ date: new Date() })}
 
     return result.toUIMessageStreamResponse();
   }
-
 }
 
 export default {
