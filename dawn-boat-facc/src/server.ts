@@ -3,6 +3,7 @@ import { callable, routeAgentRequest } from "agents";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
     type ArchitectureDecisionState,
+    type ArchitectureAlternative,
     initialDecisionState
 } from "./architecture";
 import {
@@ -15,6 +16,20 @@ import {
     tool
 } from "ai";
 import { z } from "zod";
+
+const architectureAlternativeSchema = z.object({
+    name: z.string(),
+    summary: z.string(),
+    strengths: z.array(z.string()),
+    tradeoffs: z.array(z.string())
+});
+
+const alternativesResponseSchema = z.object({
+    alternatives: z
+        .array(architectureAlternativeSchema)
+        .min(2)
+        .max(4)
+});
 
 export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
   maxPersistedMessages = 100;
@@ -67,6 +82,90 @@ export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
 
     return this.state;
   }
+
+    @callable()
+    async analyzeOptions() {
+        if (!this.state.problem.trim()) {
+            throw new Error(
+                "Cannot analyze alternatives until the problem has been defined."
+            );
+        }
+
+        const workersai = createWorkersAI({ binding: this.env.AI });
+
+        this.setState({
+            ...this.state,
+            status: "analyzing"
+        });
+
+        try {
+            const result = await generateText({
+                model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+                    sessionAffinity: this.sessionAffinity
+                }),
+
+                system: `You are an Architecture Decision Agent.
+
+Generate 2 to 4 meaningful architecture alternatives for the
+architecture decision below.
+
+Each alternative must represent a materially different approach.
+
+Evaluate each alternative against the actual requirements and
+constraints in the decision state.
+
+Do not invent requirements or constraints.
+Do not select a final recommendation yet.
+
+Return ONLY valid JSON. Do not use Markdown or code fences.
+
+{
+  "alternatives": [
+    {
+      "name": "Alternative name",
+      "summary": "Short description",
+      "strengths": ["strength"],
+      "tradeoffs": ["tradeoff"]
+    }
+  ]
+}
+
+Architecture decision state:
+${JSON.stringify(this.state, null, 2)}
+`,
+
+                prompt: "Generate architecture alternatives."
+            });
+
+            console.log("ALTERNATIVES RAW:", result.text);
+
+            const cleanedText = result.text
+                .trim()
+                .replace(/^```(?:json)?\s*/i, "")
+                .replace(/\s*```$/, "");
+
+            const parsedJson = JSON.parse(cleanedText);
+            const parsed = alternativesResponseSchema.parse(parsedJson);
+
+            const nextState: ArchitectureDecisionState = {
+                ...this.state,
+                alternatives: parsed.alternatives,
+                status: "analyzing"
+            };
+
+            this.setState(nextState);
+
+            return nextState;
+        } catch (error) {
+            this.setState({
+                ...this.state,
+                status: "discovery"
+            });
+
+            console.error("Architecture option analysis failed:", error);
+            throw error;
+        }
+    }
 
   async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions) {
     const mcpTools = this.mcp.getAITools();

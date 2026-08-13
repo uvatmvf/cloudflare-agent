@@ -11,9 +11,16 @@ export interface ArchitectureDecisionState {
     constraints: string[];
     assumptions: string[];
     openQuestions: string[];
-    alternatives: string[];
+    alternatives: ArchitectureAlternative[];
     recommendation: string | null;
     status: ArchitectureDecisionStatus;
+}
+
+export interface ArchitectureAlternative {
+    name: string;
+    summary: string;
+    strengths: string[];
+    tradeoffs: string[];
 }
 
 export const initialDecisionState: ArchitectureDecisionState = {
