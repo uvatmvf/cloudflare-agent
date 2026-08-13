@@ -1048,6 +1048,52 @@ function Chat() {
                   </Surface>
                 </div>
               )}
+              {agent.state?.adr && (
+                <div>
+                  <Text size="xs" variant="secondary" bold>
+                    FINAL ADR
+                  </Text>
+
+                  <Surface className="mt-2 rounded-lg ring ring-kumo-line p-3 space-y-3">
+                    <div>
+                      <Text size="sm" bold>
+                        {agent.state.adr.title}
+                      </Text>
+                    </div>
+
+                    <div>
+                      <Text size="xs" variant="secondary" bold>
+                        DECISION
+                      </Text>
+                      <p className="text-sm mt-1">
+                        {agent.state.adr.recommendation.alternative}
+                      </p>
+                    </div>
+
+                    <div>
+                      <Text size="xs" variant="secondary" bold>
+                        RATIONALE
+                      </Text>
+                      <p className="text-sm mt-1">
+                        {agent.state.adr.recommendation.rationale}
+                      </p>
+                    </div>
+
+                    <div>
+                      <Text size="xs" variant="secondary" bold>
+                        ACCEPTED TRADEOFFS
+                      </Text>
+                      <ul className="mt-1 space-y-1 text-sm">
+                        {agent.state.adr.recommendation.acceptedTradeoffs.map(
+                          (tradeoff) => (
+                            <li key={tradeoff}>• {tradeoff}</li>
+                          ),
+                        )}
+                      </ul>
+                    </div>
+                  </Surface>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="primary"
