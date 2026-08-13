@@ -15,9 +15,10 @@
     "start": "vite dev",
     "deploy": "vite build && wrangler deploy",
     "types": "wrangler types env.d.ts",
-    "format": "oxfmt --write .",
+    "format": "prettier --write .",
     "lint": "oxlint src/",
-    "check": "oxfmt --check . && oxlint src/ && tsc"
+    "check": "oxfmt --check . && oxlint src/ && tsc",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@cloudflare/ai-chat": "^0.9.3",
