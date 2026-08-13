@@ -66,10 +66,11 @@ export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
     const mcpTools = this.mcp.getAITools();
     const workersai = createWorkersAI({ binding: this.env.AI });
 
-    const result = await generateText({
-          model: workersai("@cf/meta/llama-4-scout-17b-16e-instruct", {
+      const result = await generateText({
+          model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
               sessionAffinity: this.sessionAffinity
           }),
+
           system: `You are an Architecture Decision Agent.
 
 Your role is to help a software architect work through an architecture decision collaboratively.
@@ -97,83 +98,108 @@ Keep responses concise and practical.
 
 Treat the user as the decision maker. Your job is to facilitate and structure architectural reasoning, not replace human judgment.
 
-When the user provides new architectural facts, use the updateDecisionState tool to persist meaningful changes to the decision before responding.
+When the latest user message contains new architectural facts:
+- call updateDecisionState exactly once
+- persist only facts supported by the user's actual statements
+- do not invent generic requirements such as scalability, reliability, performance, security, or availability unless the user actually expressed them
+- after updateDecisionState succeeds, do not call it again during the same turn
+- after the tool succeeds, always produce a concise conversational text response
+- ask only the next 2-3 highest-value questions
 
-Only persist information supported by the user's statements.
-Do not invent requirements, constraints, or assumptions.
-Open questions may contain questions you determine are important to resolving the architecture decision.
-    `,
-      // Prune old tool calls and reasoning to save tokens on long conversations
-      messages: pruneMessages({
-        messages: await convertToModelMessages(this.messages),
-        toolCalls: "before-last-2-messages",
-        reasoning: "before-last-message"
-      }),
-      tools: {
-        // MCP tools from connected servers
-        ...mcpTools,
-          updateDecisionState: tool({
-              description:
-                  "Persist architecture facts learned from the user during requirements discovery.",
+Never end a turn immediately after calling updateDecisionState.
+`,
 
-              inputSchema: z.object({
-                  problem: z.string().optional(),
-                  requirements: z.array(z.string()).optional(),
-                  constraints: z.array(z.string()).optional(),
-                  assumptions: z.array(z.string()).optional(),
-                  openQuestions: z.array(z.string()).optional()
-              }),
+          messages: pruneMessages({
+              messages: await convertToModelMessages(this.messages),
+              toolCalls: "before-last-2-messages",
+              reasoning: "before-last-message"
+          }),
 
-              execute: async ({
-                  problem,
-                  requirements,
-                  constraints,
-                  assumptions,
-                  openQuestions
-              }) => {
-                  // update this.state here
+          tools: {
+              ...mcpTools,
 
-                  const unique = (values: string[]) =>
-                      [...new Set(values.map((v) => v.trim()).filter(Boolean))];
+              updateDecisionState: tool({
+                  description: `Persist architecture facts from the user's latest message.
 
-                  const nextState = {
-                      ...this.state,
+Call this tool at most once per user message.
 
-                      problem: problem?.trim() || this.state.problem,
+Persist only facts directly stated or strongly implied by the user's words.
 
-                      requirements: unique([
-                          ...this.state.requirements,
-                          ...(requirements ?? [])
-                      ]),
+Do not add generic architecture qualities such as scalability, reliability,
+performance, security, or availability unless the user actually expressed them.
 
-                      constraints: unique([
-                          ...this.state.constraints,
-                          ...(constraints ?? [])
-                      ]),
+After this tool succeeds, do not call it again during this turn.
+Respond to the user in text.`,
 
-                      assumptions: unique([
-                          ...this.state.assumptions,
-                          ...(assumptions ?? [])
-                      ]),
+                  inputSchema: z.object({
+                      problem: z.string().optional(),
+                      requirements: z.array(z.string()).optional(),
+                      constraints: z.array(z.string()).optional(),
+                      assumptions: z.array(z.string()).optional(),
+                      openQuestions: z.array(z.string()).optional()
+                  }),
 
-                      openQuestions: unique([
-                          ...this.state.openQuestions,
-                          ...(openQuestions ?? [])
-                      ])
-                  };
+                  execute: async ({
+                      problem,
+                      requirements,
+                      constraints,
+                      assumptions,
+                      openQuestions
+                  }) => {
+                      const unique = (values: string[]) =>
+                          [...new Set(values.map((v) => v.trim()).filter(Boolean))];
 
-                  this.setState(nextState);
+                      const nextState = {
+                          ...this.state,
 
-                  return {
-                      success: true,
-                      state: nextState
-                  };
-              }
-          })
-      },
-      stopWhen: stepCountIs(20),
-      abortSignal: options?.abortSignal
-    });
+                          problem: problem?.trim() || this.state.problem,
+
+                          requirements: unique([
+                              ...this.state.requirements,
+                              ...(requirements ?? [])
+                          ]),
+
+                          constraints: unique([
+                              ...this.state.constraints,
+                              ...(constraints ?? [])
+                          ]),
+
+                          assumptions: unique([
+                              ...this.state.assumptions,
+                              ...(assumptions ?? [])
+                          ]),
+
+                          openQuestions: unique([
+                              ...this.state.openQuestions,
+                              ...(openQuestions ?? [])
+                          ])
+                      };
+
+                      this.setState(nextState);
+
+                      return {
+                          success: true,
+                          instruction:
+                              "Architecture decision state was persisted successfully. Do not call updateDecisionState again this turn. Now respond to the user in text."
+                      };
+                  }
+              })
+          },
+
+          stopWhen: stepCountIs(2)
+      });
+ 
+      console.log("RESULT TEXT:", result.text);
+      console.log(
+          "STEPS:",
+          result.steps.map((step, i) => ({
+              step: i,
+              text: step.text,
+              toolCalls: step.toolCalls,
+              toolResults: step.toolResults
+          }))
+      );
+    console.log("CURRENT MESSAGES:", JSON.stringify(this.messages, null, 2));
 
     const stream = createUIMessageStream({
           execute: ({ writer }) => {
