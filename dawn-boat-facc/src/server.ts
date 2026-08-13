@@ -201,12 +201,52 @@ Respond to the user in text.`,
       );
     console.log("CURRENT MESSAGES:", JSON.stringify(this.messages, null, 2));
 
-    const stream = createUIMessageStream({
+      let responseText = result.text;
+
+      if (!responseText.trim()) {
+          const responseResult = await generateText({
+              model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+                  sessionAffinity: this.sessionAffinity
+              }),
+
+              system: `You are an Architecture Decision Agent.
+
+The architecture decision state has already been updated.
+
+Respond conversationally to the user's latest message.
+
+Briefly summarize what you understood and ask the next 2-3
+highest-value architecture questions.
+
+Do not call tools.
+Do not invent requirements or constraints.
+Do not jump immediately to a solution.
+
+Current architecture decision state:
+${JSON.stringify(this.state, null, 2)}
+`,
+
+              messages: await convertToModelMessages(this.messages)
+          });
+
+          responseText = responseResult.text;
+      }
+
+      console.log("RESULT TEXT:", result.text);
+      console.log("RESPONSE TEXT:", responseText);
+
+      const stream = createUIMessageStream({
           execute: ({ writer }) => {
               const id = crypto.randomUUID();
 
               writer.write({ type: "text-start", id });
-              writer.write({ type: "text-delta", id, delta: result.text });
+
+              writer.write({
+                  type: "text-delta",
+                  id,
+                  delta: responseText
+              });
+
               writer.write({ type: "text-end", id });
           }
       });
