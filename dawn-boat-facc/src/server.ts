@@ -11,8 +11,10 @@ import {
   createUIMessageStreamResponse,
   pruneMessages,
   stepCountIs,
-  generateText  
+    generateText,
+    tool
 } from "ai";
+import { z } from "zod";
 
 export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
   maxPersistedMessages = 100;
@@ -94,6 +96,12 @@ Open Questions
 Keep responses concise and practical.
 
 Treat the user as the decision maker. Your job is to facilitate and structure architectural reasoning, not replace human judgment.
+
+When the user provides new architectural facts, use the updateDecisionState tool to persist meaningful changes to the decision before responding.
+
+Only persist information supported by the user's statements.
+Do not invent requirements, constraints, or assumptions.
+Open questions may contain questions you determine are important to resolving the architecture decision.
     `,
       // Prune old tool calls and reasoning to save tokens on long conversations
       messages: pruneMessages({
@@ -104,7 +112,64 @@ Treat the user as the decision maker. Your job is to facilitate and structure ar
       tools: {
         // MCP tools from connected servers
         ...mcpTools,
+          updateDecisionState: tool({
+              description:
+                  "Persist architecture facts learned from the user during requirements discovery.",
 
+              inputSchema: z.object({
+                  problem: z.string().optional(),
+                  requirements: z.array(z.string()).optional(),
+                  constraints: z.array(z.string()).optional(),
+                  assumptions: z.array(z.string()).optional(),
+                  openQuestions: z.array(z.string()).optional()
+              }),
+
+              execute: async ({
+                  problem,
+                  requirements,
+                  constraints,
+                  assumptions,
+                  openQuestions
+              }) => {
+                  // update this.state here
+
+                  const unique = (values: string[]) =>
+                      [...new Set(values.map((v) => v.trim()).filter(Boolean))];
+
+                  const nextState = {
+                      ...this.state,
+
+                      problem: problem?.trim() || this.state.problem,
+
+                      requirements: unique([
+                          ...this.state.requirements,
+                          ...(requirements ?? [])
+                      ]),
+
+                      constraints: unique([
+                          ...this.state.constraints,
+                          ...(constraints ?? [])
+                      ]),
+
+                      assumptions: unique([
+                          ...this.state.assumptions,
+                          ...(assumptions ?? [])
+                      ]),
+
+                      openQuestions: unique([
+                          ...this.state.openQuestions,
+                          ...(openQuestions ?? [])
+                      ])
+                  };
+
+                  this.setState(nextState);
+
+                  return {
+                      success: true,
+                      state: nextState
+                  };
+              }
+          })
       },
       stopWhen: stepCountIs(20),
       abortSignal: options?.abortSignal
