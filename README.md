@@ -93,11 +93,11 @@ exercised with other architecture problems.
 
 ### Analyze & Recommend
 
-`<img width="712" height="1802" alt="Architecture Decision Agent showing analyzed alternatives and recommendation" src="https://github.com/user-attachments/assets/13b24347-cc48-422e-bc94-28db5721bb5e" />`{=html}
+<img width="712" height="1802" alt="Architecture Decision Agent showing analyzed alternatives and recommendation" src="https://github.com/user-attachments/assets/13b24347-cc48-422e-bc94-28db5721bb5e" />
 
 ### Architecture Decision Record
 
-`<img width="655" height="344" alt="Final architecture decision record" src="https://github.com/user-attachments/assets/b8aad30c-c388-4332-8a75-208e5dc188f4" />`{=html}
+<img width="655" height="344" alt="Final architecture decision record" src="https://github.com/user-attachments/assets/b8aad30c-c388-4332-8a75-208e5dc188f4" />
 
 ## Architecture
 
