@@ -524,10 +524,10 @@ function Chat() {
 
       {/* Header */}
       <header className="px-5 py-4 bg-kumo-base border-b border-kumo-line">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-semibold text-kumo-default">
-              <span className="mr-2">⛅</span>Agent Starter
+              <span className="mr-2">⛅</span>Architecture Decision Agent
             </h1>
             <Badge variant="secondary">
               <ChatCircleDotsIcon size={12} weight="bold" className="mr-1" />
@@ -727,14 +727,14 @@ function Chat() {
               icon={<TrashIcon size={16} />}
               onClick={clearHistory}
             >
-              Clear
+              Clear Chat
             </Button>
             <Button
               variant="secondary"
               icon={<TrashIcon size={16} />}
               onClick={handleResetDecision}
             >
-              Reset
+              Reset Decision
             </Button>
           </div>
         </div>
@@ -742,8 +742,15 @@ function Chat() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-5 py-6 space-y-5">
-          <div className="space-y-5">
+        <div
+          className="
+    max-w-7xl mx-auto px-5 py-6
+    grid grid-cols-1
+    lg:grid-cols-[minmax(0,1fr)_420px]
+    gap-6 items-start
+  "
+        >
+          <div className="space-y-5 min-w-0">
             {messages.length === 0 && (
               <Empty
                 icon={<ChatCircleDotsIcon size={32} />}
@@ -896,7 +903,7 @@ function Chat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <aside>
+          <aside className="min-w-0">
             <Surface className="rounded-xl ring ring-kumo-line p-4 sticky top-4 space-y-4">
               <div>
                 <Text size="xs" variant="secondary" bold>
@@ -1094,7 +1101,7 @@ function Chat() {
                   </Surface>
                 </div>
               )}
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Button
                   variant="primary"
                   onClick={handleAnalyzeOptions}
@@ -1125,6 +1132,7 @@ function Chat() {
                     !agent.state?.recommendation ||
                     agent.state?.status === "accepted"
                   }
+                  className="sm:col-span-2"
                 >
                   {agent.state?.status === "accepted"
                     ? "Decision Accepted"
