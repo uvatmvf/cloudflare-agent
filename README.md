@@ -14,5 +14,8 @@ Use the following prompts when exercising the agent behavior in the demo environ
 
 1. `We need to build a system that processes documents uploaded by customers. Traffic can be very bursty, and some documents may take several minutes to process.`
 2. `We absolutely cannot lose a document. Some documents contain sensitive customer information. We also have a small platform team, so operational simplicity matters.`
+### Expected demo output
+<img width="714" height="1802" alt="image" src="https://github.com/user-attachments/assets/20d20c03-4689-4291-8e9a-54d7d3806fed" />
+
 
 Feel free to modify the prompts to test error handling, long-running tasks, or sensitive-data redaction flows.
