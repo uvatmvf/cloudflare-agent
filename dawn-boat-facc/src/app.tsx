@@ -335,7 +335,13 @@ function Chat() {
       setIsRecommending(false);
     }
   };
-
+  const handleAcceptDecision = async () => {
+    try {
+      await agent.stub.acceptDecision();
+    } catch (error) {
+      console.error("Failed to accept architecture decision:", error);
+    }
+  };
   // Close MCP panel when clicking outside
   useEffect(() => {
     if (!showMcpPanel) return;
@@ -1065,6 +1071,18 @@ function Chat() {
                   {isRecommending
                     ? "Recommending..."
                     : "Generate Recommendation"}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleAcceptDecision}
+                  disabled={
+                    !agent.state?.recommendation ||
+                    agent.state?.status === "accepted"
+                  }
+                >
+                  {agent.state?.status === "accepted"
+                    ? "Decision Accepted"
+                    : "Accept Decision"}
                 </Button>
               </div>
             </Surface>

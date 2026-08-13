@@ -3,7 +3,7 @@ import { callable, routeAgentRequest } from "agents";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
   type ArchitectureDecisionState,
-  type ArchitectureRecommendation,
+  type ArchitectureDecisionRecord,
   initialDecisionState,
 } from "./architecture";
 import {
@@ -219,6 +219,34 @@ ${JSON.stringify(this.state, null, 2)}
     return nextState;
   }
 
+  @callable()
+  acceptDecision() {
+    if (!this.state.recommendation) {
+      throw new Error(
+        "Cannot accept the decision until a recommendation has been generated.",
+      );
+    }
+
+    const adr: ArchitectureDecisionRecord = {
+      title: this.state.title,
+      problem: this.state.problem,
+      requirements: this.state.requirements,
+      constraints: this.state.constraints,
+      alternatives: this.state.alternatives,
+      recommendation: this.state.recommendation,
+      acceptedAt: new Date().toISOString(),
+    };
+
+    const nextState: ArchitectureDecisionState = {
+      ...this.state,
+      adr,
+      status: "accepted",
+    };
+
+    this.setState(nextState);
+
+    return nextState;
+  }
   async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions) {
     const mcpTools = this.mcp.getAITools();
     const workersai = createWorkersAI({ binding: this.env.AI });

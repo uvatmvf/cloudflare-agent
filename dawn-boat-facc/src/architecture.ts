@@ -30,6 +30,7 @@ export const initialDecisionState: ArchitectureDecisionState = {
   alternatives: [],
   recommendation: null,
   status: "discovery",
+  adr: null,
 };
 
 export interface ArchitectureRecommendation {
@@ -48,6 +49,15 @@ export interface ArchitectureDecisionState {
   alternatives: ArchitectureAlternative[];
 
   recommendation: ArchitectureRecommendation | null;
-
+  adr: ArchitectureDecisionRecord | null;
   status: "discovery" | "analyzing" | "recommended" | "accepted";
+}
+export interface ArchitectureDecisionRecord {
+  title: string;
+  problem: string;
+  requirements: string[];
+  constraints: string[];
+  alternatives: ArchitectureAlternative[];
+  recommendation: ArchitectureRecommendation;
+  acceptedAt: string;
 }
