@@ -50,6 +50,16 @@ export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
     await this.removeMcpServer(serverId);
   }
 
+  @callable()
+  updateDecisionTitle(title: string) {
+    this.setState({
+        ...this.state,
+         title
+    });
+
+    return this.state;
+  }
+
   async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions) {
     const mcpTools = this.mcp.getAITools();
     const workersai = createWorkersAI({ binding: this.env.AI });
