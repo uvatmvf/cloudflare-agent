@@ -346,7 +346,15 @@ function Chat() {
     } catch (e) {
       console.error("Failed to remove MCP server:", e);
     }
-  };
+    };
+
+  const handleResetDecision = async () => {
+        try {
+            await agent.stub.resetDecision();
+        } catch (error) {
+            console.error("Failed to reset decision:", error);
+        }
+    };
 
   const serverEntries = Object.entries(mcpState.servers);
   const mcpToolCount = mcpState.tools.length;
@@ -689,7 +697,14 @@ function Chat() {
               onClick={clearHistory}
             >
               Clear
-            </Button>
+                      </Button>
+                      <Button
+                          variant="secondary"
+                          icon={<TrashIcon size={16} />}
+                          onClick={handleResetDecision}
+                      >
+                          Reset
+                      </Button>
           </div>
         </div>
       </header>
