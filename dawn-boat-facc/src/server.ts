@@ -25,6 +25,12 @@ const architectureAlternativeSchema = z.object({
   tradeoffs: z.array(z.string()),
 });
 
+const architectureRecommendationSchema = z.object({
+    alternative: z.string(),
+    rationale: z.string(),
+    acceptedTradeoffs: z.array(z.string()),
+});
+
 const alternativesResponseSchema = z.object({
   alternatives: z.array(architectureAlternativeSchema).min(2).max(4),
 });
@@ -171,7 +177,11 @@ ${JSON.stringify(this.state, null, 2)}
 
         const result = await generateText({
             model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
-                sessionAffinity: this.sessionAffinity
+                sessionAffinity: this.sessionAffinity,
+            }),
+
+            output: Output.object({
+                schema: architectureRecommendationSchema,
             }),
 
             system: `You are an Architecture Decision Agent.
@@ -189,24 +199,14 @@ specific decision.
 
 Explicitly identify the important tradeoffs being accepted.
 
-Return ONLY valid JSON in this exact shape:
-
-{
-  "alternative": "Exact alternative name",
-  "rationale": "Concise explanation of why this alternative is preferred",
-  "acceptedTradeoffs": [
-    "Tradeoff being accepted"
-  ]
-}
-
 Current architecture decision state:
 ${JSON.stringify(this.state, null, 2)}
 `,
 
-            prompt: "Generate the architecture recommendation."
+            prompt: "Generate the architecture recommendation.",
         });
 
-        const parsed = JSON.parse(result.text) as ArchitectureRecommendation;
+        const parsed = result.output;
 
         const nextState: ArchitectureDecisionState = {
             ...this.state,
