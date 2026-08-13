@@ -12,7 +12,8 @@ import {
   createUIMessageStreamResponse,
   pruneMessages,
   stepCountIs,
-  generateText,
+    generateText,
+  Output,
   tool,
 } from "ai";
 import { z } from "zod";
@@ -96,17 +97,27 @@ export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
     });
 
     try {
-      const result = await generateText({
-        model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
-          sessionAffinity: this.sessionAffinity,
-        }),
+        const result = await generateText({
+            model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+                sessionAffinity: this.sessionAffinity,
+            }),
 
-        system: `You are an Architecture Decision Agent.
+            output: Output.object({
+                schema: alternativesResponseSchema,
+            }),
+
+            system: `You are an Architecture Decision Agent.
 
 Generate 2 to 4 meaningful architecture alternatives for the
 architecture decision below.
 
 Each alternative must represent a materially different approach.
+
+Alternatives must be at the same architectural level and must
+represent different ways of solving the same core problem.
+
+Do not mix user-interface choices with backend architecture choices.
+Do not treat complementary components as competing alternatives.
 
 Evaluate each alternative against the actual requirements and
 constraints in the decision state.
@@ -114,35 +125,13 @@ constraints in the decision state.
 Do not invent requirements or constraints.
 Do not select a final recommendation yet.
 
-Return ONLY valid JSON. Do not use Markdown or code fences.
-
-{
-  "alternatives": [
-    {
-      "name": "Alternative name",
-      "summary": "Short description",
-      "strengths": ["strength"],
-      "tradeoffs": ["tradeoff"]
-    }
-  ]
-}
-
 Architecture decision state:
 ${JSON.stringify(this.state, null, 2)}
 `,
 
-        prompt: "Generate architecture alternatives.",
-      });
-
-      console.log("ALTERNATIVES RAW:", result.text);
-
-      const cleanedText = result.text
-        .trim()
-        .replace(/^```(?:json)?\s*/i, "")
-        .replace(/\s*```$/, "");
-
-      const parsedJson = JSON.parse(cleanedText);
-      const parsed = alternativesResponseSchema.parse(parsedJson);
+            prompt: "Generate architecture alternatives.",
+        });
+        const parsed = result.output;
 
       const nextState: ArchitectureDecisionState = {
         ...this.state,
