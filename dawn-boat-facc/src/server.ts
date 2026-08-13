@@ -2,6 +2,10 @@ import { createWorkersAI } from "workers-ai-provider";
 import { callable, routeAgentRequest } from "agents";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
+    type ArchitectureDecisionState,
+    initialDecisionState
+} from "./architecture";
+import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -10,9 +14,10 @@ import {
   generateText  
 } from "ai";
 
-export class ChatAgent extends AIChatAgent<Env> {
+export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
   maxPersistedMessages = 100;
-  chatRecovery = true;
+    chatRecovery = true;
+    initialState = initialDecisionState;
   // Wait for MCP connections to be re-established after hibernation before
   // processing a message, so MCP tools aren't intermittently missing.
   waitForMcpConnections = true;
