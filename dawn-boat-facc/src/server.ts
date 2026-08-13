@@ -43,6 +43,12 @@ export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
   }
 
   @callable()
+  resetDecision() {
+        this.setState(initialDecisionState);
+        return this.state;
+    }
+
+  @callable()
   async addServer(name: string, url: string) {
     return await this.addMcpServer(name, url);
   }
