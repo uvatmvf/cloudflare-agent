@@ -9,7 +9,7 @@ export interface ArchitectureDecisionState {
   assumptions: string[];
   openQuestions: string[];
   alternatives: ArchitectureAlternative[];
-  recommendation: string | null;
+  recommendation: ArchitectureRecommendation | null;
   status: ArchitectureDecisionStatus;
 }
 
@@ -31,3 +31,27 @@ export const initialDecisionState: ArchitectureDecisionState = {
   recommendation: null,
   status: "discovery",
 };
+
+export interface ArchitectureRecommendation {
+    alternative: string;
+    rationale: string;
+    acceptedTradeoffs: string[];
+}
+
+export interface ArchitectureDecisionState {
+    title: string;
+    problem: string;
+    requirements: string[];
+    constraints: string[];
+    assumptions: string[];
+    openQuestions: string[];
+    alternatives: ArchitectureAlternative[];
+
+    recommendation: ArchitectureRecommendation | null;
+
+    status:
+    | "discovery"
+    | "analyzing"
+    | "recommended"
+    | "accepted";
+}

@@ -281,7 +281,9 @@ function Chat() {
   const [isAddingServer, setIsAddingServer] = useState(false);
   const mcpPanelRef = useRef<HTMLDivElement>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isRecommending, setIsRecommending] = useState(false);
 
+    
   const agent = useAgent<ChatAgent>({
     agent: "ChatAgent",
     onOpen: useCallback(() => setConnected(true), []),
@@ -321,8 +323,23 @@ function Chat() {
       console.error("Failed to analyze architecture options:", error);
     } finally {
       setIsAnalyzing(false);
-    }
-  };
+        }
+    };
+ const handleGenerateRecommendation = async () => {
+        setIsRecommending(true);
+
+        try {
+            await agent.stub.generateRecommendation();
+        } catch (error) {
+            console.error(
+                "Failed to generate architecture recommendation:",
+                error
+            );
+        } finally {
+            setIsRecommending(false);
+        }
+    };
+
   // Close MCP panel when clicking outside
   useEffect(() => {
     if (!showMcpPanel) return;
@@ -995,16 +1012,65 @@ function Chat() {
                   </div>
                 </div>
               ) : null}
+                          {agent.state?.recommendation && (
+                              <div>
+                                  <Text size="xs" variant="secondary" bold>
+                                      RECOMMENDATION
+                                  </Text>
 
-              <div>
-                <Button
-                  variant="primary"
-                  onClick={handleAnalyzeOptions}
-                  disabled={isAnalyzing || !agent.state?.problem}
-                >
-                  {isAnalyzing ? "Analyzing..." : "Analyze Options"}
-                </Button>
-              </div>
+                                  <Surface className="mt-2 rounded-lg ring ring-kumo-line p-3">
+                                      <Text size="sm" bold>
+                                          {agent.state.recommendation.alternative}
+                                      </Text>
+
+                                      <p className="text-sm text-kumo-default mt-2">
+                                          {agent.state.recommendation.rationale}
+                                      </p>
+
+                                      {agent.state.recommendation.acceptedTradeoffs?.length > 0 && (
+                                          <div className="mt-3">
+                                              <Text size="xs" variant="secondary" bold>
+                                                  ACCEPTED TRADEOFFS
+                                              </Text>
+
+                                              <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                                                  {agent.state.recommendation.acceptedTradeoffs.map(
+                                                      (tradeoff) => (
+                                                          <li key={tradeoff}>• {tradeoff}</li>
+                                                      )
+                                                  )}
+                                              </ul>
+                                          </div>
+                                      )}
+                                  </Surface>
+                              </div>
+                          )}
+                          <div className="flex gap-2">
+                              <Button
+                                  variant="primary"
+                                  onClick={handleAnalyzeOptions}
+                                  disabled={isAnalyzing || !agent.state?.problem}
+                              >
+                                  {isAnalyzing
+                                      ? "Analyzing..."
+                                      : agent.state?.alternatives?.length
+                                          ? "Re-analyze Options"
+                                          : "Analyze Options"}
+                              </Button>
+
+                              <Button
+                                  variant="secondary"
+                                  onClick={handleGenerateRecommendation}
+                                  disabled={
+                                      isRecommending ||
+                                      !agent.state?.alternatives?.length
+                                  }
+                              >
+                                  {isRecommending
+                                      ? "Recommending..."
+                                      : "Generate Recommendation"}
+                              </Button>
+                          </div>
             </Surface>
           </aside>
         </div>

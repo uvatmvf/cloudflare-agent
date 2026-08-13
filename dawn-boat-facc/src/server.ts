@@ -2,8 +2,8 @@ import { createWorkersAI } from "workers-ai-provider";
 import { callable, routeAgentRequest } from "agents";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
-  type ArchitectureDecisionState,
-  type ArchitectureAlternative,
+    type ArchitectureDecisionState,
+    type ArchitectureRecommendation,
   initialDecisionState,
 } from "./architecture";
 import {
@@ -163,6 +163,72 @@ ${JSON.stringify(this.state, null, 2)}
       throw error;
     }
   }
+
+    @callable()
+    async generateRecommendation() {
+        if (!this.state.problem.trim()) {
+            throw new Error(
+                "Cannot generate a recommendation until the problem has been defined."
+            );
+        }
+
+        if (!this.state.alternatives.length) {
+            throw new Error(
+                "Cannot generate a recommendation until alternatives have been analyzed."
+            );
+        }
+
+        const workersai = createWorkersAI({ binding: this.env.AI });
+
+        const result = await generateText({
+            model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+                sessionAffinity: this.sessionAffinity
+            }),
+
+            system: `You are an Architecture Decision Agent.
+
+Select the strongest architecture alternative from the alternatives
+already present in the architecture decision state.
+
+Base the recommendation only on the stated problem, requirements,
+constraints, assumptions, and alternatives.
+
+Do not invent new requirements or constraints.
+
+Explain why the selected alternative is the best fit for this
+specific decision.
+
+Explicitly identify the important tradeoffs being accepted.
+
+Return ONLY valid JSON in this exact shape:
+
+{
+  "alternative": "Exact alternative name",
+  "rationale": "Concise explanation of why this alternative is preferred",
+  "acceptedTradeoffs": [
+    "Tradeoff being accepted"
+  ]
+}
+
+Current architecture decision state:
+${JSON.stringify(this.state, null, 2)}
+`,
+
+            prompt: "Generate the architecture recommendation."
+        });
+
+        const parsed = JSON.parse(result.text) as ArchitectureRecommendation;
+
+        const nextState: ArchitectureDecisionState = {
+            ...this.state,
+            recommendation: parsed,
+            status: "recommended"
+        };
+
+        this.setState(nextState);
+
+        return nextState;
+    }
 
   async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions) {
     const mcpTools = this.mcp.getAITools();
