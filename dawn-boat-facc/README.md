@@ -46,6 +46,7 @@ src/
 ```
 
 ### Known Issues
+
 During development, streamed Workers AI responses through the current Agents SDK chat stack produced duplicated incremental content, while non-streaming inference returned correct output. The implementation uses non-streaming generation to preserve correctness while keeping the agent architecture unchanged.
 
 ## What's included
@@ -196,7 +197,7 @@ import { openai } from "@ai-sdk/openai";
 
 // Inside onChatMessage:
 const result = streamText({
-  model: openai("gpt-5.2")
+  model: openai("gpt-5.2"),
   // ...
 });
 ```
@@ -217,7 +218,7 @@ npm install @ai-sdk/anthropic
 import { anthropic } from "@ai-sdk/anthropic";
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-20250514")
+  model: anthropic("claude-sonnet-4-20250514"),
   // ...
 });
 ```

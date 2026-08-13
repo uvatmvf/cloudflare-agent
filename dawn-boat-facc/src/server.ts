@@ -2,9 +2,9 @@ import { createWorkersAI } from "workers-ai-provider";
 import { callable, routeAgentRequest } from "agents";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
-    type ArchitectureDecisionState,
-    type ArchitectureAlternative,
-    initialDecisionState
+  type ArchitectureDecisionState,
+  type ArchitectureAlternative,
+  initialDecisionState,
 } from "./architecture";
 import {
   convertToModelMessages,
@@ -12,29 +12,26 @@ import {
   createUIMessageStreamResponse,
   pruneMessages,
   stepCountIs,
-    generateText,
-    tool
+  generateText,
+  tool,
 } from "ai";
 import { z } from "zod";
 
 const architectureAlternativeSchema = z.object({
-    name: z.string(),
-    summary: z.string(),
-    strengths: z.array(z.string()),
-    tradeoffs: z.array(z.string())
+  name: z.string(),
+  summary: z.string(),
+  strengths: z.array(z.string()),
+  tradeoffs: z.array(z.string()),
 });
 
 const alternativesResponseSchema = z.object({
-    alternatives: z
-        .array(architectureAlternativeSchema)
-        .min(2)
-        .max(4)
+  alternatives: z.array(architectureAlternativeSchema).min(2).max(4),
 });
 
 export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
   maxPersistedMessages = 100;
-    chatRecovery = true;
-    initialState = initialDecisionState;
+  chatRecovery = true;
+  initialState = initialDecisionState;
   // Wait for MCP connections to be re-established after hibernation before
   // processing a message, so MCP tools aren't intermittently missing.
   waitForMcpConnections = true;
@@ -46,22 +43,22 @@ export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
         if (result.authSuccess) {
           return new Response("<script>window.close();</script>", {
             headers: { "content-type": "text/html" },
-            status: 200
+            status: 200,
           });
         }
         return new Response(
           `Authentication Failed: ${result.authError || "Unknown error"}`,
-          { headers: { "content-type": "text/plain" }, status: 400 }
+          { headers: { "content-type": "text/plain" }, status: 400 },
         );
-      }
+      },
     });
   }
 
   @callable()
   resetDecision() {
-        this.setState(initialDecisionState);
-        return this.state;
-    }
+    this.setState(initialDecisionState);
+    return this.state;
+  }
 
   @callable()
   async addServer(name: string, url: string) {
@@ -76,35 +73,35 @@ export class ChatAgent extends AIChatAgent<Env, ArchitectureDecisionState> {
   @callable()
   updateDecisionTitle(title: string) {
     this.setState({
-        ...this.state,
-         title
+      ...this.state,
+      title,
     });
 
     return this.state;
   }
 
-    @callable()
-    async analyzeOptions() {
-        if (!this.state.problem.trim()) {
-            throw new Error(
-                "Cannot analyze alternatives until the problem has been defined."
-            );
-        }
+  @callable()
+  async analyzeOptions() {
+    if (!this.state.problem.trim()) {
+      throw new Error(
+        "Cannot analyze alternatives until the problem has been defined.",
+      );
+    }
 
-        const workersai = createWorkersAI({ binding: this.env.AI });
+    const workersai = createWorkersAI({ binding: this.env.AI });
 
-        this.setState({
-            ...this.state,
-            status: "analyzing"
-        });
+    this.setState({
+      ...this.state,
+      status: "analyzing",
+    });
 
-        try {
-            const result = await generateText({
-                model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
-                    sessionAffinity: this.sessionAffinity
-                }),
+    try {
+      const result = await generateText({
+        model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+          sessionAffinity: this.sessionAffinity,
+        }),
 
-                system: `You are an Architecture Decision Agent.
+        system: `You are an Architecture Decision Agent.
 
 Generate 2 to 4 meaningful architecture alternatives for the
 architecture decision below.
@@ -134,49 +131,49 @@ Architecture decision state:
 ${JSON.stringify(this.state, null, 2)}
 `,
 
-                prompt: "Generate architecture alternatives."
-            });
+        prompt: "Generate architecture alternatives.",
+      });
 
-            console.log("ALTERNATIVES RAW:", result.text);
+      console.log("ALTERNATIVES RAW:", result.text);
 
-            const cleanedText = result.text
-                .trim()
-                .replace(/^```(?:json)?\s*/i, "")
-                .replace(/\s*```$/, "");
+      const cleanedText = result.text
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/, "");
 
-            const parsedJson = JSON.parse(cleanedText);
-            const parsed = alternativesResponseSchema.parse(parsedJson);
+      const parsedJson = JSON.parse(cleanedText);
+      const parsed = alternativesResponseSchema.parse(parsedJson);
 
-            const nextState: ArchitectureDecisionState = {
-                ...this.state,
-                alternatives: parsed.alternatives,
-                status: "analyzing"
-            };
+      const nextState: ArchitectureDecisionState = {
+        ...this.state,
+        alternatives: parsed.alternatives,
+        status: "analyzing",
+      };
 
-            this.setState(nextState);
+      this.setState(nextState);
 
-            return nextState;
-        } catch (error) {
-            this.setState({
-                ...this.state,
-                status: "discovery"
-            });
+      return nextState;
+    } catch (error) {
+      this.setState({
+        ...this.state,
+        status: "discovery",
+      });
 
-            console.error("Architecture option analysis failed:", error);
-            throw error;
-        }
+      console.error("Architecture option analysis failed:", error);
+      throw error;
     }
+  }
 
   async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions) {
     const mcpTools = this.mcp.getAITools();
     const workersai = createWorkersAI({ binding: this.env.AI });
 
-      const result = await generateText({
-          model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
-              sessionAffinity: this.sessionAffinity
-          }),
+    const result = await generateText({
+      model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+        sessionAffinity: this.sessionAffinity,
+      }),
 
-          system: `You are an Architecture Decision Agent.
+      system: `You are an Architecture Decision Agent.
 
 Your role is to help a software architect work through an architecture decision collaboratively.
 
@@ -230,17 +227,17 @@ When the latest user message contains new architectural facts:
 Never end a turn immediately after calling updateDecisionState.
 `,
 
-          messages: pruneMessages({
-              messages: await convertToModelMessages(this.messages),
-              toolCalls: "before-last-2-messages",
-              reasoning: "before-last-message"
-          }),
+      messages: pruneMessages({
+        messages: await convertToModelMessages(this.messages),
+        toolCalls: "before-last-2-messages",
+        reasoning: "before-last-message",
+      }),
 
-          tools: {
-              ...mcpTools,
+      tools: {
+        ...mcpTools,
 
-              updateDecisionState: tool({
-                  description: `Persist architecture facts from the user's latest message.
+        updateDecisionState: tool({
+          description: `Persist architecture facts from the user's latest message.
                   Classify each fact into exactly one category.
 
 Requirements:
@@ -269,85 +266,86 @@ performance, security, or availability unless the user actually expressed them.
 After this tool succeeds, do not call it again during this turn.
 Respond to the user in text.`,
 
-                  inputSchema: z.object({
-                      problem: z.string().optional(),
-                      requirements: z.array(z.string()).optional(),
-                      constraints: z.array(z.string()).optional(),
-                      assumptions: z.array(z.string()).optional(),
-                      openQuestions: z.array(z.string()).optional()
-                  }),
+          inputSchema: z.object({
+            problem: z.string().optional(),
+            requirements: z.array(z.string()).optional(),
+            constraints: z.array(z.string()).optional(),
+            assumptions: z.array(z.string()).optional(),
+            openQuestions: z.array(z.string()).optional(),
+          }),
 
-                  execute: async ({
-                      problem,
-                      requirements,
-                      constraints,
-                      assumptions,
-                      openQuestions
-                  }) => {
-                      const unique = (values: string[]) =>
-                          [...new Set(values.map((v) => v.trim()).filter(Boolean))];
+          execute: async ({
+            problem,
+            requirements,
+            constraints,
+            assumptions,
+            openQuestions,
+          }) => {
+            const unique = (values: string[]) => [
+              ...new Set(values.map((v) => v.trim()).filter(Boolean)),
+            ];
 
-                      const nextState = {
-                          ...this.state,
+            const nextState = {
+              ...this.state,
 
-                          problem: problem?.trim() || this.state.problem,
+              problem: problem?.trim() || this.state.problem,
 
-                          requirements: unique([
-                              ...this.state.requirements,
-                              ...(requirements ?? [])
-                          ]),
+              requirements: unique([
+                ...this.state.requirements,
+                ...(requirements ?? []),
+              ]),
 
-                          constraints: unique([
-                              ...this.state.constraints,
-                              ...(constraints ?? [])
-                          ]),
+              constraints: unique([
+                ...this.state.constraints,
+                ...(constraints ?? []),
+              ]),
 
-                          assumptions: unique([
-                              ...this.state.assumptions,
-                              ...(assumptions ?? [])
-                          ]),
+              assumptions: unique([
+                ...this.state.assumptions,
+                ...(assumptions ?? []),
+              ]),
 
-                          openQuestions: unique([
-                              ...this.state.openQuestions,
-                              ...(openQuestions ?? [])
-                          ])
-                      };
+              openQuestions: unique([
+                ...this.state.openQuestions,
+                ...(openQuestions ?? []),
+              ]),
+            };
 
-                      this.setState(nextState);
+            this.setState(nextState);
 
-                      return {
-                          success: true,
-                          instruction:
-                              "Architecture decision state was persisted successfully. Do not call updateDecisionState again this turn. Now respond to the user in text."
-                      };
-                  }
-              })
+            return {
+              success: true,
+              instruction:
+                "Architecture decision state was persisted successfully. Do not call updateDecisionState again this turn. Now respond to the user in text.",
+            };
           },
+        }),
+      },
 
-          stopWhen: stepCountIs(2)
-      });
- 
-      console.log("RESULT TEXT:", result.text);
-      console.log(
-          "STEPS:",
-          result.steps.map((step, i) => ({
-              step: i,
-              text: step.text,
-              toolCalls: step.toolCalls,
-              toolResults: step.toolResults
-          }))
-      );
+      stopWhen: stepCountIs(2),
+    });
+
+    console.log("RESULT TEXT:", result.text);
+    console.log(
+      "STEPS:",
+      result.steps.map((step, i) => ({
+        step: i,
+        text: step.text,
+        toolCalls: step.toolCalls,
+        toolResults: step.toolResults,
+      })),
+    );
     console.log("CURRENT MESSAGES:", JSON.stringify(this.messages, null, 2));
 
-      let responseText = result.text;
+    let responseText = result.text;
 
-      if (!responseText.trim()) {
-          const responseResult = await generateText({
-              model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
-                  sessionAffinity: this.sessionAffinity
-              }),
+    if (!responseText.trim()) {
+      const responseResult = await generateText({
+        model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+          sessionAffinity: this.sessionAffinity,
+        }),
 
-              system: `You are an Architecture Decision Agent.
+        system: `You are an Architecture Decision Agent.
 
 The architecture decision state has already been updated.
 
@@ -364,31 +362,31 @@ Current architecture decision state:
 ${JSON.stringify(this.state, null, 2)}
 `,
 
-              messages: await convertToModelMessages(this.messages)
-          });
-
-          responseText = responseResult.text;
-      }
-
-      console.log("RESPONSE TEXT:", responseText);
-
-      const stream = createUIMessageStream({
-          execute: ({ writer }) => {
-              const id = crypto.randomUUID();
-
-              writer.write({ type: "text-start", id });
-
-              writer.write({
-                  type: "text-delta",
-                  id,
-                  delta: responseText
-              });
-
-              writer.write({ type: "text-end", id });
-          }
+        messages: await convertToModelMessages(this.messages),
       });
 
-      return createUIMessageStreamResponse({ stream });
+      responseText = responseResult.text;
+    }
+
+    console.log("RESPONSE TEXT:", responseText);
+
+    const stream = createUIMessageStream({
+      execute: ({ writer }) => {
+        const id = crypto.randomUUID();
+
+        writer.write({ type: "text-start", id });
+
+        writer.write({
+          type: "text-delta",
+          id,
+          delta: responseText,
+        });
+
+        writer.write({ type: "text-end", id });
+      },
+    });
+
+    return createUIMessageStreamResponse({ stream });
   }
 }
 
@@ -398,5 +396,5 @@ export default {
       (await routeAgentRequest(request, env)) ||
       new Response("Not found", { status: 404 })
     );
-  }
+  },
 } satisfies ExportedHandler<Env>;

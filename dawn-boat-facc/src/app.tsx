@@ -12,7 +12,7 @@ import {
   PoweredByCloudflare,
   Surface,
   Switch,
-  Text
+  Text,
 } from "@cloudflare/kumo";
 import { Toasty, useKumoToastManager } from "@cloudflare/kumo/components/toast";
 import { Streamdown } from "streamdown";
@@ -37,7 +37,7 @@ import {
   XIcon,
   WrenchIcon,
   PaperclipIcon,
-  ImageIcon
+  ImageIcon,
 } from "@phosphor-icons/react";
 
 // ── Attachment helpers ────────────────────────────────────────────────
@@ -54,7 +54,7 @@ function createAttachment(file: File): Attachment {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     file,
     preview: URL.createObjectURL(file),
-    mediaType: file.type || "application/octet-stream"
+    mediaType: file.type || "application/octet-stream",
   };
 }
 
@@ -71,7 +71,7 @@ function fileToDataUri(file: File): Promise<string> {
 
 function ThemeToggle() {
   const [dark, setDark] = useState(
-    () => document.documentElement.getAttribute("data-mode") === "dark"
+    () => document.documentElement.getAttribute("data-mode") === "dark",
   );
 
   const toggle = useCallback(() => {
@@ -115,7 +115,7 @@ function ToolIO({ label, value }: { label: string; value: unknown }) {
 
 function ToolPartView({
   part,
-  addToolApprovalResponse
+  addToolApprovalResponse,
 }: {
   part: UIMessage["parts"][number];
   addToolApprovalResponse: (response: {
@@ -273,7 +273,7 @@ function Chat() {
     prompts: [],
     resources: [],
     servers: {},
-    tools: []
+    tools: [],
   });
   const [showMcpPanel, setShowMcpPanel] = useState(false);
   const [mcpName, setMcpName] = useState("");
@@ -288,7 +288,7 @@ function Chat() {
     onClose: useCallback(() => setConnected(false), []),
     onError: useCallback(
       (error: Event) => console.error("WebSocket error:", error),
-      []
+      [],
     ),
     onMcpUpdate: useCallback((state: MCPServersState) => {
       setMcpState(state);
@@ -301,28 +301,28 @@ function Chat() {
             toasts.add({
               title: "Scheduled task completed",
               description: data.description,
-              timeout: 0
+              timeout: 0,
             });
           }
         } catch {
           // Not JSON or not our event
         }
       },
-      [toasts]
-    )
+      [toasts],
+    ),
   });
 
   const handleAnalyzeOptions = async () => {
-        setIsAnalyzing(true);
+    setIsAnalyzing(true);
 
-        try {
-            await agent.stub.analyzeOptions();
-        } catch (error) {
-            console.error("Failed to analyze architecture options:", error);
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
+    try {
+      await agent.stub.analyzeOptions();
+    } catch (error) {
+      console.error("Failed to analyze architecture options:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
   // Close MCP panel when clicking outside
   useEffect(() => {
     if (!showMcpPanel) return;
@@ -358,15 +358,15 @@ function Chat() {
     } catch (e) {
       console.error("Failed to remove MCP server:", e);
     }
-    };
+  };
 
   const handleResetDecision = async () => {
-        try {
-            await agent.stub.resetDecision();
-        } catch (error) {
-            console.error("Failed to reset decision:", error);
-        }
-    };
+    try {
+      await agent.stub.resetDecision();
+    } catch (error) {
+      console.error("Failed to reset decision:", error);
+    }
+  };
 
   const serverEntries = Object.entries(mcpState.servers);
   const mcpToolCount = mcpState.tools.length;
@@ -377,7 +377,7 @@ function Chat() {
     clearHistory,
     addToolApprovalResponse,
     stop,
-    status
+    status,
   } = useAgentChat({
     agent,
     experimental_throttle: 100,
@@ -387,11 +387,11 @@ function Chat() {
           toolCallId: toolCall.toolCallId,
           output: {
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            localTime: new Date().toLocaleTimeString()
-          }
+            localTime: new Date().toLocaleTimeString(),
+          },
         });
       }
-    }
+    },
   });
 
   const isStreaming = status === "streaming" || status === "submitted";
@@ -440,7 +440,7 @@ function Chat() {
       setIsDragging(false);
       if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files);
     },
-    [addFiles]
+    [addFiles],
   );
 
   const handlePaste = useCallback(
@@ -459,7 +459,7 @@ function Chat() {
         addFiles(files);
       }
     },
-    [addFiles]
+    [addFiles],
   );
 
   const send = useCallback(async () => {
@@ -665,7 +665,7 @@ function Chat() {
                                       window.open(
                                         server.auth_url as string,
                                         "oauth",
-                                        "width=600,height=800"
+                                        "width=600,height=800",
                                       )
                                     }
                                   >
@@ -709,301 +709,306 @@ function Chat() {
               onClick={clearHistory}
             >
               Clear
-                      </Button>
-                      <Button
-                          variant="secondary"
-                          icon={<TrashIcon size={16} />}
-                          onClick={handleResetDecision}
-                      >
-                          Reset
-                      </Button>
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<TrashIcon size={16} />}
+              onClick={handleResetDecision}
+            >
+              Reset
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
-              <div className="max-w-3xl mx-auto px-5 py-6 space-y-5">
-                  <div className="space-y-5">
-          {messages.length === 0 && (
-            <Empty
-              icon={<ChatCircleDotsIcon size={32} />}
-              title="Start a conversation"
-              contents={
-                <div className="flex flex-wrap justify-center gap-2">
-                      {[
-                    "We need to build a system that processes documents uploaded by customers.",
-                    "We need to build a system that answers b-to-b questions about our inventory management system."
-                  ].map((prompt) => (
-                    <Button
-                      key={prompt}
-                      variant="outline"
-                      size="sm"
-                      disabled={isStreaming}
-                      onClick={() => {
-                        sendMessage({
-                          role: "user",
-                          parts: [{ type: "text", text: prompt }]
-                        });
-                      }}
-                    >
-                      {prompt}
-                    </Button>
-                  ))}
-                </div>
-              }
-            />
-          )}
-
-          {messages.map((message: UIMessage, index: number) => {
-            const isUser = message.role === "user";
-            const isLastAssistant =
-              message.role === "assistant" && index === messages.length - 1;
-
-            return (
-              <div key={message.id} className="space-y-2">
-                {showDebug && (
-                  <pre className="text-[11px] text-kumo-subtle bg-kumo-control rounded-lg p-3 overflow-auto max-h-64">
-                    {JSON.stringify(message, null, 2)}
-                  </pre>
-                )}
-
-                {/* Render parts in chronological (array) order */}
-                {message.parts.map((part, i) => {
-                  const key = `${message.id}-${i}`;
-
-                  if (isToolUIPart(part)) {
-                    return (
-                      <ToolPartView
-                        key={key}
-                        part={part}
-                        addToolApprovalResponse={addToolApprovalResponse}
-                      />
-                    );
-                  }
-
-                  if (part.type === "reasoning") {
-                    if (!part.text.trim()) return null;
-                    const isDone = part.state === "done" || !isStreaming;
-                    return (
-                      <div key={key} className="flex justify-start">
-                        <details className="max-w-[85%] w-full" open={!isDone}>
-                          <summary className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-sm select-none">
-                            <BrainIcon size={14} className="text-purple-400" />
-                            <span className="font-medium text-kumo-default">
-                              Reasoning
-                            </span>
-                            {isDone ? (
-                              <span className="text-xs text-kumo-success">
-                                Complete
-                              </span>
-                            ) : (
-                              <span className="text-xs text-kumo-brand">
-                                Thinking...
-                              </span>
-                            )}
-                            <CaretDownIcon
-                              size={14}
-                              className="ml-auto text-kumo-inactive"
-                            />
-                          </summary>
-                          <pre className="mt-2 px-3 py-2 rounded-lg bg-kumo-control text-xs text-kumo-default whitespace-pre-wrap overflow-auto max-h-64">
-                            {part.text}
-                          </pre>
-                        </details>
-                      </div>
-                    );
-                  }
-
-                  if (
-                    part.type === "file" &&
-                    part.mediaType.startsWith("image/")
-                  ) {
-                    return (
-                      <div
-                        key={key}
-                        className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+        <div className="max-w-3xl mx-auto px-5 py-6 space-y-5">
+          <div className="space-y-5">
+            {messages.length === 0 && (
+              <Empty
+                icon={<ChatCircleDotsIcon size={32} />}
+                title="Start a conversation"
+                contents={
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {[
+                      "We need to build a system that processes documents uploaded by customers.",
+                      "We need to build a system that answers b-to-b questions about our inventory management system.",
+                    ].map((prompt) => (
+                      <Button
+                        key={prompt}
+                        variant="outline"
+                        size="sm"
+                        disabled={isStreaming}
+                        onClick={() => {
+                          sendMessage({
+                            role: "user",
+                            parts: [{ type: "text", text: prompt }],
+                          });
+                        }}
                       >
-                        <img
-                          src={part.url}
-                          alt="Attachment"
-                          className="max-h-64 rounded-xl border border-kumo-line object-contain"
-                        />
-                      </div>
-                    );
-                  }
+                        {prompt}
+                      </Button>
+                    ))}
+                  </div>
+                }
+              />
+            )}
 
-                  if (part.type === "text") {
-                    if (!part.text) return null;
+            {messages.map((message: UIMessage, index: number) => {
+              const isUser = message.role === "user";
+              const isLastAssistant =
+                message.role === "assistant" && index === messages.length - 1;
 
-                    if (isUser) {
+              return (
+                <div key={message.id} className="space-y-2">
+                  {showDebug && (
+                    <pre className="text-[11px] text-kumo-subtle bg-kumo-control rounded-lg p-3 overflow-auto max-h-64">
+                      {JSON.stringify(message, null, 2)}
+                    </pre>
+                  )}
+
+                  {/* Render parts in chronological (array) order */}
+                  {message.parts.map((part, i) => {
+                    const key = `${message.id}-${i}`;
+
+                    if (isToolUIPart(part)) {
                       return (
-                        <div key={key} className="flex justify-end">
-                          <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
-                            {part.text}
+                        <ToolPartView
+                          key={key}
+                          part={part}
+                          addToolApprovalResponse={addToolApprovalResponse}
+                        />
+                      );
+                    }
+
+                    if (part.type === "reasoning") {
+                      if (!part.text.trim()) return null;
+                      const isDone = part.state === "done" || !isStreaming;
+                      return (
+                        <div key={key} className="flex justify-start">
+                          <details
+                            className="max-w-[85%] w-full"
+                            open={!isDone}
+                          >
+                            <summary className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-sm select-none">
+                              <BrainIcon
+                                size={14}
+                                className="text-purple-400"
+                              />
+                              <span className="font-medium text-kumo-default">
+                                Reasoning
+                              </span>
+                              {isDone ? (
+                                <span className="text-xs text-kumo-success">
+                                  Complete
+                                </span>
+                              ) : (
+                                <span className="text-xs text-kumo-brand">
+                                  Thinking...
+                                </span>
+                              )}
+                              <CaretDownIcon
+                                size={14}
+                                className="ml-auto text-kumo-inactive"
+                              />
+                            </summary>
+                            <pre className="mt-2 px-3 py-2 rounded-lg bg-kumo-control text-xs text-kumo-default whitespace-pre-wrap overflow-auto max-h-64">
+                              {part.text}
+                            </pre>
+                          </details>
+                        </div>
+                      );
+                    }
+
+                    if (
+                      part.type === "file" &&
+                      part.mediaType.startsWith("image/")
+                    ) {
+                      return (
+                        <div
+                          key={key}
+                          className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                        >
+                          <img
+                            src={part.url}
+                            alt="Attachment"
+                            className="max-h-64 rounded-xl border border-kumo-line object-contain"
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (part.type === "text") {
+                      if (!part.text) return null;
+
+                      if (isUser) {
+                        return (
+                          <div key={key} className="flex justify-end">
+                            <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
+                              {part.text}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div key={key} className="flex justify-start">
+                          <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
+                            <Streamdown
+                              className="sd-theme rounded-2xl rounded-bl-md p-3"
+                              plugins={{ code }}
+                              controls={false}
+                              isAnimating={isLastAssistant && isStreaming}
+                            >
+                              {part.text}
+                            </Streamdown>
                           </div>
                         </div>
                       );
                     }
 
-                    return (
-                      <div key={key} className="flex justify-start">
-                        <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
-                          <Streamdown
-                            className="sd-theme rounded-2xl rounded-bl-md p-3"
-                            plugins={{ code }}
-                            controls={false}
-                            isAnimating={isLastAssistant && isStreaming}
-                          >
-                            {part.text}
-                          </Streamdown>
-                        </div>
-                      </div>
-                    );
-                  }
+                    return null;
+                  })}
+                </div>
+              );
+            })}
 
-                  return null;
-                })}
-              </div>
-            );
-          })}
-
-                      <div ref={messagesEndRef} />
-                  </div>
-
-                  <aside>
-                      <Surface className="rounded-xl ring ring-kumo-line p-4 sticky top-4 space-y-4">
-                          <div>
-                              <Text size="xs" variant="secondary" bold>
-                                  ARCHITECTURE DECISION
-                              </Text>
-
-                              <h2 className="text-lg font-semibold text-kumo-default mt-1">
-                                  {agent.state?.title ?? "New Architecture Decision"}
-                              </h2>
-
-                          </div>
-
-                          <div>
-                              <Text size="xs" variant="secondary" bold>
-                                  STATUS
-                              </Text>
-                              <div className="mt-1">
-                                  <Badge variant="secondary">
-                                      {agent.state?.status ?? "discovery"}
-                                  </Badge>
-                              </div>
-                          </div>
-
-                          <div>
-                              <Text size="xs" variant="secondary" bold>
-                                  PROBLEM
-                              </Text>
-                              <p className="text-sm text-kumo-default mt-1">
-                                  {agent.state?.problem || "Not defined yet"}
-                              </p>
-                          </div>
-
-                          <div>
-                              <Text size="xs" variant="secondary" bold>
-                                  REQUIREMENTS
-                              </Text>
-
-                              {agent.state?.requirements?.length ? (
-                                  <ul className="mt-1 space-y-1 text-sm text-kumo-default">
-                                      {agent.state.requirements.map((requirement) => (
-                                          <li key={requirement}>• {requirement}</li>
-                                      ))}
-                                  </ul>
-                              ) : (
-                                  <p className="text-sm text-kumo-subtle mt-1">
-                                      None captured yet
-                                  </p>
-                              )}
-                          </div>
-
-                          <div>
-                              <Text size="xs" variant="secondary" bold>
-                                  CONSTRAINTS
-                              </Text>
-
-                              {agent.state?.constraints?.length ? (
-                                  <ul className="mt-1 space-y-1 text-sm text-kumo-default">
-                                      {agent.state.constraints.map((constraint) => (
-                                          <li key={constraint}>• {constraint}</li>
-                                      ))}
-                                  </ul>
-                              ) : (
-                                  <p className="text-sm text-kumo-subtle mt-1">
-                                      None captured yet
-                                  </p>
-                              )}
-                          </div>
-
-                          {agent.state?.alternatives?.length ? (
-                              <div>
-                                  <Text size="xs" variant="secondary" bold>
-                                      ALTERNATIVES
-                                  </Text>
-
-                                  <div className="mt-2 space-y-3">
-                                      {agent.state.alternatives.map((alternative) => (
-                                          <Surface
-                                              key={alternative.name}
-                                              className="rounded-lg ring ring-kumo-line p-3"
-                                          >
-                                              <Text size="sm" bold>
-                                                  {alternative.name}
-                                              </Text>
-
-                                              <p className="text-sm text-kumo-default mt-1">
-                                                  {alternative.summary}
-                                              </p>
-
-                                              {alternative.strengths?.length > 0 && (
-                                                  <div className="mt-3">
-                                                      <Text size="xs" variant="secondary" bold>
-                                                          STRENGTHS
-                                                      </Text>
-                                                      <ul className="mt-1 space-y-1 text-sm text-kumo-default">
-                                                          {alternative.strengths.map((strength) => (
-                                                              <li key={strength}>• {strength}</li>
-                                                          ))}
-                                                      </ul>
-                                                  </div>
-                                              )}
-
-                                              {alternative.tradeoffs?.length > 0 && (
-                                                  <div className="mt-3">
-                                                      <Text size="xs" variant="secondary" bold>
-                                                          TRADEOFFS
-                                                      </Text>
-                                                      <ul className="mt-1 space-y-1 text-sm text-kumo-default">
-                                                          {alternative.tradeoffs.map((tradeoff) => (
-                                                              <li key={tradeoff}>• {tradeoff}</li>
-                                                          ))}
-                                                      </ul>
-                                                  </div>
-                                              )}
-                                          </Surface>
-                                      ))}
-                                  </div>
-                              </div>
-                          ) : null}
-
-                          <div>
-                              <Button
-                                  variant="primary"
-                                  onClick={handleAnalyzeOptions}
-                                  disabled={isAnalyzing || !agent.state?.problem}
-                              >
-                                  {isAnalyzing ? "Analyzing..." : "Analyze Options"}
-                              </Button>
-                          </div>
-                      </Surface>
-                  </aside>
-              </div>
+            <div ref={messagesEndRef} />
           </div>
+
+          <aside>
+            <Surface className="rounded-xl ring ring-kumo-line p-4 sticky top-4 space-y-4">
+              <div>
+                <Text size="xs" variant="secondary" bold>
+                  ARCHITECTURE DECISION
+                </Text>
+
+                <h2 className="text-lg font-semibold text-kumo-default mt-1">
+                  {agent.state?.title ?? "New Architecture Decision"}
+                </h2>
+              </div>
+
+              <div>
+                <Text size="xs" variant="secondary" bold>
+                  STATUS
+                </Text>
+                <div className="mt-1">
+                  <Badge variant="secondary">
+                    {agent.state?.status ?? "discovery"}
+                  </Badge>
+                </div>
+              </div>
+
+              <div>
+                <Text size="xs" variant="secondary" bold>
+                  PROBLEM
+                </Text>
+                <p className="text-sm text-kumo-default mt-1">
+                  {agent.state?.problem || "Not defined yet"}
+                </p>
+              </div>
+
+              <div>
+                <Text size="xs" variant="secondary" bold>
+                  REQUIREMENTS
+                </Text>
+
+                {agent.state?.requirements?.length ? (
+                  <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                    {agent.state.requirements.map((requirement) => (
+                      <li key={requirement}>• {requirement}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-kumo-subtle mt-1">
+                    None captured yet
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Text size="xs" variant="secondary" bold>
+                  CONSTRAINTS
+                </Text>
+
+                {agent.state?.constraints?.length ? (
+                  <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                    {agent.state.constraints.map((constraint) => (
+                      <li key={constraint}>• {constraint}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-kumo-subtle mt-1">
+                    None captured yet
+                  </p>
+                )}
+              </div>
+
+              {agent.state?.alternatives?.length ? (
+                <div>
+                  <Text size="xs" variant="secondary" bold>
+                    ALTERNATIVES
+                  </Text>
+
+                  <div className="mt-2 space-y-3">
+                    {agent.state.alternatives.map((alternative) => (
+                      <Surface
+                        key={alternative.name}
+                        className="rounded-lg ring ring-kumo-line p-3"
+                      >
+                        <Text size="sm" bold>
+                          {alternative.name}
+                        </Text>
+
+                        <p className="text-sm text-kumo-default mt-1">
+                          {alternative.summary}
+                        </p>
+
+                        {alternative.strengths?.length > 0 && (
+                          <div className="mt-3">
+                            <Text size="xs" variant="secondary" bold>
+                              STRENGTHS
+                            </Text>
+                            <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                              {alternative.strengths.map((strength) => (
+                                <li key={strength}>• {strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {alternative.tradeoffs?.length > 0 && (
+                          <div className="mt-3">
+                            <Text size="xs" variant="secondary" bold>
+                              TRADEOFFS
+                            </Text>
+                            <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                              {alternative.tradeoffs.map((tradeoff) => (
+                                <li key={tradeoff}>• {tradeoff}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </Surface>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div>
+                <Button
+                  variant="primary"
+                  onClick={handleAnalyzeOptions}
+                  disabled={isAnalyzing || !agent.state?.problem}
+                >
+                  {isAnalyzing ? "Analyzing..." : "Analyze Options"}
+                </Button>
+              </div>
+            </Surface>
+          </aside>
+        </div>
+      </div>
 
       {/* Input */}
       <div className="border-t border-kumo-line bg-kumo-base">
