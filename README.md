@@ -226,3 +226,14 @@ npm run dev
 
 Use the application in the browser, enter an architecture problem, and
 follow the decision workflow shown above.
+
+# AI-Assited Development 
+This project was developed with AI-assisted engineering using ChatGPT.
+
+The development conversation includes the initial architecture discussion,
+incremental implementation, debugging of the Agents SDK / Workers AI streaming
+path, durable state design, alternatives analysis, recommendation workflow,
+and final UI refinement.
+
+[Development conversation](https://chatgpt.com/share/6a7e3c40-60cc-83e8-a5f0-8ca94e70a54c)
+
