@@ -280,6 +280,7 @@ function Chat() {
   const [mcpUrl, setMcpUrl] = useState("");
   const [isAddingServer, setIsAddingServer] = useState(false);
   const mcpPanelRef = useRef<HTMLDivElement>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const agent = useAgent<ChatAgent>({
     agent: "ChatAgent",
@@ -311,6 +312,17 @@ function Chat() {
     )
   });
 
+  const handleAnalyzeOptions = async () => {
+        setIsAnalyzing(true);
+
+        try {
+            await agent.stub.analyzeOptions();
+        } catch (error) {
+            console.error("Failed to analyze architecture options:", error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
   // Close MCP panel when clicking outside
   useEffect(() => {
     if (!showMcpPanel) return;
@@ -926,6 +938,67 @@ function Chat() {
                                       None captured yet
                                   </p>
                               )}
+                          </div>
+
+                          {agent.state?.alternatives?.length ? (
+                              <div>
+                                  <Text size="xs" variant="secondary" bold>
+                                      ALTERNATIVES
+                                  </Text>
+
+                                  <div className="mt-2 space-y-3">
+                                      {agent.state.alternatives.map((alternative) => (
+                                          <Surface
+                                              key={alternative.name}
+                                              className="rounded-lg ring ring-kumo-line p-3"
+                                          >
+                                              <Text size="sm" bold>
+                                                  {alternative.name}
+                                              </Text>
+
+                                              <p className="text-sm text-kumo-default mt-1">
+                                                  {alternative.summary}
+                                              </p>
+
+                                              {alternative.strengths?.length > 0 && (
+                                                  <div className="mt-3">
+                                                      <Text size="xs" variant="secondary" bold>
+                                                          STRENGTHS
+                                                      </Text>
+                                                      <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                                                          {alternative.strengths.map((strength) => (
+                                                              <li key={strength}>• {strength}</li>
+                                                          ))}
+                                                      </ul>
+                                                  </div>
+                                              )}
+
+                                              {alternative.tradeoffs?.length > 0 && (
+                                                  <div className="mt-3">
+                                                      <Text size="xs" variant="secondary" bold>
+                                                          TRADEOFFS
+                                                      </Text>
+                                                      <ul className="mt-1 space-y-1 text-sm text-kumo-default">
+                                                          {alternative.tradeoffs.map((tradeoff) => (
+                                                              <li key={tradeoff}>• {tradeoff}</li>
+                                                          ))}
+                                                      </ul>
+                                                  </div>
+                                              )}
+                                          </Surface>
+                                      ))}
+                                  </div>
+                              </div>
+                          ) : null}
+
+                          <div>
+                              <Button
+                                  variant="primary"
+                                  onClick={handleAnalyzeOptions}
+                                  disabled={isAnalyzing || !agent.state?.problem}
+                              >
+                                  {isAnalyzing ? "Analyzing..." : "Analyze Options"}
+                              </Button>
                           </div>
                       </Surface>
                   </aside>
