@@ -1,8 +1,18 @@
+# Demo Agent LLM Chat — Solution Notes
 
-# Known Issues
-During development, streamed Workers AI responses through the current Agents SDK chat stack produced duplicated incremental content, while non-streaming inference returned correct output. The implementation uses non-streaming generation to preserve correctness while keeping the agent architecture unchanged.
+This repository contains a demo agent-based LLM chat application built with the Agents SDK. It's intended as a lightweight reference for exploring agent orchestration, server-side inference, and chat integrations.
 
-# Demo Prompts
-1. 
-`We need to build a system that processes documents uploaded by customers. Traffic can be very bursty, and some documents may take several minutes to process.`
+## Known Issues
+During development we observed duplicated incremental content when streaming Workers AI responses through the current Agents SDK chat stack. Non-streaming inference returns correct output. To preserve correctness without changing the agent architecture, this demo uses non-streaming generation for responses.
+
+What to expect:
+- Streaming responses may show duplicate partial content in some environments.
+- Non-streaming (batched) generation produces consistent, correct messages and is the recommended mode for this demo.
+
+## Demo Prompts
+Use the following prompts when exercising the agent behavior in the demo environment.
+
+1. `We need to build a system that processes documents uploaded by customers. Traffic can be very bursty, and some documents may take several minutes to process.`
 2. `We absolutely cannot lose a document. Some documents contain sensitive customer information. We also have a small platform team, so operational simplicity matters.`
+
+Feel free to modify the prompts to test error handling, long-running tasks, or sensitive-data redaction flows.
