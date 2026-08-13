@@ -18,6 +18,7 @@ Use the following prompts when exercising the agent behavior in the demo environ
 Using a simple problem statement (and clarifying statements) the application will support generating analysis, recommendation and architectural decision reference.
 ### Analyze & Recommend
 <img width="712" height="1802" alt="image" src="https://github.com/user-attachments/assets/13b24347-cc48-422e-bc94-28db5721bb5e" />
+
 ### ADR
 <img width="655" height="344" alt="image" src="https://github.com/user-attachments/assets/b8aad30c-c388-4332-8a75-208e5dc188f4" />
 
